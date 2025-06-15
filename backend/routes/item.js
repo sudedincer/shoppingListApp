@@ -34,9 +34,12 @@ router.post('/create', verifyToken, async (req, res) => {
 
         res.status(201).json(newItem);
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Sunucu hatası." });
-    }
+    console.error("Item oluşturulurken hata:", err.message);
+    res.status(500).json({
+        message: "Sunucu hatası.",
+        error: err.message
+    });
+}
 });
 
 // Item güncelle

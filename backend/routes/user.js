@@ -47,7 +47,11 @@ router.post('/login', async (req, res, next) => {
         return next(res.json({message: 'Email veya şifre hatalı!',status: 400}));
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET_KEY, { expiresIn: '1h' });
+    const token = jwt.sign(
+  { id: user._id, email: user.email },  // email burada OLMALI
+  process.env.TOKEN_SECRET_KEY,
+  { expiresIn: "1h" }
+);
     res.header('token',token);
     
     return res.json({data:{message: 'Kullanıcı başarıyla giriş yaptı.',
