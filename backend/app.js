@@ -6,11 +6,17 @@ const app = express();
 
 // JSON parsing middleware
 app.use(express.json());
+const cors = require("cors");
 
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 // Routes
-const todoRoutes = require('./routes/todo');
+const itemRoutes = require('./routes/item');
 const userRoutes = require('./routes/user');
-app.use('/todos', todoRoutes);
+app.use('/items', itemRoutes);
 app.use('/users', userRoutes);
 
 // MongoDB bağlantısı (promise tabanlı)

@@ -1,5 +1,5 @@
 const express = require('express');
-const ToDo = require('../schemas/ToDo');
+const ToDo = require('../schemas/Item');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const User = require('../schemas/User');

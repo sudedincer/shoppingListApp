@@ -1,0 +1,44 @@
+/* Genel Stiller */
+body {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+/* Icon Circle */
+.icon-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #e7f1ff;
+  margin: 0 auto;
+}
+
+.icon-circle-lg {
+  width: 80px;
+  height: 80px;
+}
+
+/* Alışveriş Liste Öğeleri */
+.list-group-item {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.item-buttons .btn {
+  padding: 4px 8px;
+}
+
+/* Çizili Metin */
+.text-strikethrough {
+  text-decoration: line-through;
+}
+
+/* Item Badge */
+.item-quantity {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
