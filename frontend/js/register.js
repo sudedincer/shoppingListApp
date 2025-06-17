@@ -3,9 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerButton = document.getElementById("registerButton")
   const errorAlert = document.getElementById("errorAlert")
 
-  // Eğer kullanıcı zaten giriş yapmışsa, app.html'e yönlendir
+  // Eğer kullanıcı zaten giriş yapmışsa,yönlendir
   if (Auth.isAuthenticated()) {
-    window.location.href = "app.html"
+    window.location.href = "lists.html"
     return
   }
 

@@ -16,9 +16,11 @@ app.use(cors({
 // Routes
 const itemRoutes = require('./routes/item');
 const userRoutes = require('./routes/user');
+const listRoutes = require('./routes/list');
+
 app.use('/items', itemRoutes);
 app.use('/users', userRoutes);
-
+app.use('/lists', listRoutes);
 // MongoDB bağlantısı (promise tabanlı)
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,

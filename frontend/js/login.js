@@ -3,9 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginButton = document.getElementById("loginButton")
   const errorAlert = document.getElementById("errorAlert")
 
-  // Eğer kullanıcı zaten giriş yapmışsa, app.html'e yönlendir
+  // Eğer kullanıcı zaten giriş yapmışsa, yönlendir
   if (Auth.isAuthenticated()) {
-    window.location.href = "app.html"
+    window.location.href = "lists.html"
     return
   }
 
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await Auth.login(email, password)
 
       if (result.success) {
-        window.location.href = "app.html"
+        window.location.href = "lists.html"
       } else {
         showError(result.message)
         loginButton.disabled = false
