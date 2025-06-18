@@ -1,17 +1,16 @@
-
-
 document.addEventListener("DOMContentLoaded", () => {
-  // Liste ID'sini URL parametresinden oku
+  // Get listId from the URL query parameter
   const params = new URLSearchParams(window.location.search);
   const listId = params.get('listId');
   if (!listId || listId === 'null' || listId === 'undefined') {
-    alert('Geçersiz liste ID');
+    alert('Invalid list ID');
     window.location.href = 'lists.html';
     return;
   }
 
   const API_BASE = "http://localhost:3000";
 
+  // Basic authentication helper
   const Auth = {
     checkAuth: () => {
       const token = localStorage.getItem("token");
@@ -34,11 +33,12 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
+  // Redirect to login page if not authenticated
   if (!Auth.checkAuth()) {
     return;
   }
 
-  // DOM elementleri
+  // DOM element references
   const userEmailElement = document.getElementById("userEmail");
   const addItemForm = document.getElementById("addItemForm");
   const pendingItemsContainer = document.getElementById("pendingItemsContainer");
@@ -56,17 +56,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const addButton = document.getElementById("addButton");
   const unitInput = document.getElementById("unit");
 
+  // Show user email
   userEmailElement.textContent = Auth.getUserEmail();
 
+  // Logout button click handler
   logoutButton.addEventListener("click", () => {
     Auth.logout();
   });
 
+  // Form submission for adding item
   addItemForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     await addItem();
   });
 
+  // Fetch items for the current list
   async function fetchItems() {
     const res = await fetch(`${API_BASE}/items?listId=${listId}`, {
       headers: Auth.getHeaders()
@@ -75,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderItems(items);
   }
 
+  // Render items into UI
   function renderItems(items) {
     if (!Array.isArray(items) || items.length === 0) {
       showEmptyState(true);
@@ -106,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     completedItemsContainer.style.display = completedItemsList.length > 0 ? "block" : "none";
   }
 
+  // Create an HTML element for a single item
   function createItemElement(item) {
     const itemElement = document.createElement("div");
     itemElement.className = "list-group-item d-flex justify-content-between align-items-center";
@@ -117,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div>
         <span class="${contentClass}">${item.itemName}</span>
         <span class="badge item-quantity ${badgeClass} ms-2">${item.quantity} ${item.unit}</span>
-        ${item.bought ? '<span class="badge bg-success ms-2">Alındı</span>' : ""}
+        ${item.bought ? '<span class="badge bg-success ms-2">Purchased</span>' : ""}
       </div>
       <div class="item-buttons">
         <button class="btn btn-sm ${item.bought ? "btn-outline-secondary" : "btn-outline-success"} me-1" 
@@ -130,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
+    // Button event listeners
     const toggleButton = itemElement.querySelector('[data-action="toggle"]');
     const deleteButton = itemElement.querySelector('[data-action="delete"]');
 
@@ -144,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return itemElement;
   }
 
+  // Add a new item
   async function addItem() {
     const itemName = itemNameInput.value.trim();
     const quantity = Number.parseFloat(quantityInput.value) || 1;
@@ -170,19 +178,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!res.ok) {
         const err = await res.json();
-        return showError(err.message || 'Öğe eklenemedi.');
+        return showError(err.message || 'Failed to add item.');
       }
 
       itemNameInput.value = '';
       quantityInput.value = '1';
       fetchItems();
     } catch (e) {
-      showError('Sunucu hatası oluştu.');
+      showError('Server error occurred.');
     } finally {
       addButton.disabled = false;
     }
   }
 
+  // Toggle item's bought status
   async function toggleItemStatus(id, currentStatus) {
     hideError();
 
@@ -199,15 +208,16 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchItems();
       } else {
         const errorData = await response.json();
-        showError(errorData.message || "Durum güncellenirken hata oluştu.");
+        showError(errorData.message || "Failed to update item.");
       }
     } catch (error) {
-      showError("Sunucuya bağlanırken hata oluştu.");
+      showError("Error connecting to the server.");
     }
   }
 
+  // Delete an item
   async function deleteItem(id) {
-    if (!confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) {
+    if (!confirm("Are you sure you want to delete this item?")) {
       return;
     }
 
@@ -223,13 +233,14 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchItems();
       } else {
         const errorData = await response.json();
-        showError(errorData.message || "Öğe silinirken hata oluştu.");
+        showError(errorData.message || "Failed to delete item.");
       }
     } catch (error) {
-      showError("Sunucuya bağlanırken hata oluştu.");
+      showError("Error connecting to the server.");
     }
   }
 
+  // Show/hide loading spinner
   function showLoading(isLoading) {
     if (isLoading) {
       loadingSpinner.classList.remove("d-none");
@@ -241,6 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Show/hide empty state message
   function showEmptyState(isEmpty) {
     if (isEmpty) {
       emptyState.classList.remove("d-none");
@@ -251,6 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Display error alert
   function showError(message) {
     errorAlert.textContent = message;
     errorAlert.classList.remove("d-none");
@@ -259,10 +272,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   }
 
+  // Hide error alert
   function hideError() {
     errorAlert.classList.add("d-none");
   }
 
+  // Load and display list information (name and description)
   async function loadListInfo() {
     const res = await fetch(`${API_BASE}/lists/${listId}`, {
       headers: Auth.getHeaders()
@@ -273,6 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('listDesc').textContent = list.description || '';
   }
 
+  // Initialize data
   loadListInfo();
   fetchItems();
 });

@@ -1,56 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const loginForm = document.getElementById("loginForm")
-  const loginButton = document.getElementById("loginButton")
-  const errorAlert = document.getElementById("errorAlert")
+  const loginForm = document.getElementById("loginForm");
+  const loginButton = document.getElementById("loginButton");
+  const errorAlert = document.getElementById("errorAlert");
 
-  // Eğer kullanıcı zaten giriş yapmışsa, yönlendir
+  // If user is already authenticated, redirect to lists page
   if (Auth.isAuthenticated()) {
-    window.location.href = "lists.html"
-    return
+    window.location.href = "lists.html";
+    return;
   }
 
+  // Handle login form submission
   loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const email = document.getElementById("email").value.trim()
-    const password = document.getElementById("password").value
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-    // Form validasyonu
+    // Validate form fields
     if (!email || !password) {
-      showError("Email ve şifre gereklidir.")
-      return
+      showError("Email and password are required.");
+      return;
     }
 
-    // Login butonu loading göster
-    loginButton.disabled = true
+    // Disable button and show loading spinner
+    loginButton.disabled = true;
     loginButton.innerHTML =
-      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Giriş yapılıyor...'
+      '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Logging in...';
 
     try {
-      const result = await Auth.login(email, password)
+      const result = await Auth.login(email, password);
 
       if (result.success) {
-        window.location.href = "lists.html"
+        // Redirect to lists page after successful login
+        window.location.href = "lists.html";
       } else {
-        showError(result.message)
-        loginButton.disabled = false
-        loginButton.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap'
+        // Show error message if login failed
+        showError(result.message);
+        loginButton.disabled = false;
+        loginButton.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
       }
     } catch (error) {
-      showError("Sunucuya bağlanırken hata oluştu. Lütfen tekrar deneyin.")
-      loginButton.disabled = false
-      loginButton.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap'
+      showError("Failed to connect to server. Please try again.");
+      loginButton.disabled = false;
+      loginButton.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
     }
-  })
+  });
 
-  // Hata mesajı göster
+  // Display error message in alert box
   function showError(message) {
-    errorAlert.textContent = message
-    errorAlert.classList.remove("d-none")
+    errorAlert.textContent = message;
+    errorAlert.classList.remove("d-none");
 
-    // 5 saniye sonra error mesajını gizle
+    // Hide error message after 5 seconds
     setTimeout(() => {
-            errorAlert.classList.add("d-none")
-    }, 5000)
+      errorAlert.classList.add("d-none");
+    }, 5000);
   }
-})
+});

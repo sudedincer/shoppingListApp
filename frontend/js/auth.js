@@ -1,65 +1,62 @@
-const API_BASE = "http://localhost:3000";
+const API_BASE = "http://localhost:3000"; // Base URL for the backend API
 
-// Auth yardımcı fonksiyonları
 const Auth = {
-  // Token kontrolü
+  // Checks if the user is authenticated (token exists)
   isAuthenticated() {
     return !!localStorage.getItem("token");
   },
 
-  // Token alma
+  // Retrieves the stored token from localStorage
   getToken() {
     return localStorage.getItem("token");
   },
 
-  // Kullanıcı email alma
+  // Retrieves the stored user email from localStorage
   getUserEmail() {
-    return localStorage.getItem("userEmail"); // burada 'userEmail' doğru key
+    return localStorage.getItem("userEmail");
   },
 
-  // Authorization Header oluşturma
+  // Constructs headers for authenticated API requests
   getHeaders() {
     const token = this.getToken();
     return {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // attaches token as Bearer token
     };
   },
 
-  // Giriş yapma
+  // Handles user login by sending email and password to the backend
   async login(email, password) {
     const response = await fetch(`${API_BASE}/users/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
     console.log("Login response:", data);
 
+    // Token extraction from various possible response formats
     const token = data.access_token || data.token || data.data?.access_token;
 
     if (response.ok && token) {
+      // Store token and email in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("userEmail", email);
       return { success: true };
     } else {
       return {
         success: false,
-        message: data.message || "Giriş başarısız oldu.",
+        message: data.message || "Login failed.",
       };
     }
   },
 
-  // Kayıt olma
+  // Handles user registration by sending email and password to the backend
   async register(email, password) {
     const response = await fetch(`${API_BASE}/users/register`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
@@ -70,20 +67,20 @@ const Auth = {
     } else {
       return {
         success: false,
-        message: data.message || "Kayıt başarısız oldu.",
+        message: data.message || "Registration failed.",
       };
     }
   },
 
-  // Çıkış yapma
+  // Logs out the user by clearing token and user data and redirecting to index.html
   logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
-    console.log("Çıkış yapıldı, yönlendiriliyor...");
+    console.log("Logged out, redirecting...");
     window.location.href = "index.html";
   },
 
-  // Sayfa auth kontrolü
+  // Redirects to login page if user is not authenticated
   checkAuth() {
     if (!this.isAuthenticated()) {
       window.location.href = "index.html";
@@ -93,7 +90,8 @@ const Auth = {
   },
 };
 
-// Oturum kontrolünü sadece korunan sayfalarda yap
+// On every page load, if it's a protected page and user is not authenticated,
+// redirect to the login page
 document.addEventListener("DOMContentLoaded", () => {
   const publicPages = ["index.html", "index", "register.html", "register"];
   const currentPage = window.location.pathname.split("/").pop();

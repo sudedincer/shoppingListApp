@@ -1,35 +1,36 @@
-// routes/item.js
 const express     = require('express');
 const router      = express.Router();
 const Item        = require('../schemas/Item');
 const verifyToken = require('../middlewares/verifyToken');
 
-// Tüm itemleri getir (listeye göre filtrelenmiş)
+// Get all items filtered by listId (only for the authenticated user)
 router.get('/', verifyToken, async (req, res) => {
   const { listId } = req.query;
 
   if (!listId) {
-    return res.status(400).json({ message: 'listId parametresi gereklidir.' });
+    return res.status(400).json({ message: 'listId query parameter is required.' });
   }
 
   try {
     const items = await Item.find({ listId, userEmail: req.user.email });
     res.json(items);
   } catch (err) {
-    console.error('Item çekme hatası:', err);
-    res.status(500).json({ message: 'Sunucu hatası.' });
+    console.error('Error while fetching items:', err);
+    res.status(500).json({ message: 'Server error while fetching items.' });
   }
 });
 
+// Create a new item in a specific list
 router.post('/create', verifyToken, async (req, res) => {
   const { itemName, quantity, unit, bought, listId } = req.body;
 
-  // Zorunlu alan kontrolleri
+  // Validate required fields
   if (!itemName || typeof quantity !== 'number' || !unit) {
-    return res.status(400).json({ message: 'itemName, quantity ve unit zorunludur.' });
+    return res.status(400).json({ message: 'itemName, quantity, and unit are required.' });
   }
+
   if (!listId) {
-    return res.status(400).json({ message: 'listId zorunludur.' });
+    return res.status(400).json({ message: 'listId is required.' });
   }
 
   try {
@@ -41,14 +42,15 @@ router.post('/create', verifyToken, async (req, res) => {
       userEmail: req.user.email,
       listId
     });
+
     return res.status(201).json(newItem);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Öğe oluşturulurken hata oluştu.' });
+    console.error('Error while creating item:', err);
+    return res.status(500).json({ message: 'Server error while creating item.' });
   }
 });
 
-// Öğeyi güncelle (örneğin bought durumunu değiştirme)
+// Update an item (e.g., toggle "bought" status)
 router.patch('/update/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -61,17 +63,17 @@ router.patch('/update/:id', verifyToken, async (req, res) => {
     );
 
     if (!updated) {
-      return res.status(404).json({ message: 'Öğe bulunamadı veya yetkiniz yok.' });
+      return res.status(404).json({ message: 'Item not found or access denied.' });
     }
 
     res.json(updated);
   } catch (err) {
-    console.error('Güncelleme hatası:', err);
-    res.status(500).json({ message: 'Güncelleme sırasında sunucu hatası.' });
+    console.error('Error while updating item:', err);
+    res.status(500).json({ message: 'Server error while updating item.' });
   }
 });
 
-// Öğeyi sil
+// Delete an item
 router.delete('/delete/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
@@ -79,13 +81,13 @@ router.delete('/delete/:id', verifyToken, async (req, res) => {
     const deleted = await Item.findOneAndDelete({ _id: id, userEmail: req.user.email });
 
     if (!deleted) {
-      return res.status(404).json({ message: 'Öğe bulunamadı veya yetkiniz yok.' });
+      return res.status(404).json({ message: 'Item not found or access denied.' });
     }
 
-    res.json({ message: 'Öğe başarıyla silindi.' });
+    res.json({ message: 'Item successfully deleted.' });
   } catch (err) {
-    console.error('Silme hatası:', err);
-    res.status(500).json({ message: 'Silme sırasında sunucu hatası.' });
+    console.error('Error while deleting item:', err);
+    res.status(500).json({ message: 'Server error while deleting item.' });
   }
 });
 

@@ -1,10 +1,35 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  // Giriş kontrolü
+document.addEventListener("DOMContentLoaded", async () => {
+  const API_BASE = "http://localhost:3000";
+
+  // Authentication helper object
+  const Auth = {
+    checkAuth: () => {
+      const token = localStorage.getItem("token");
+      return !!token;
+    },
+    getUserEmail: () => {
+      return localStorage.getItem("userEmail") || "";
+    },
+    getHeaders: () => {
+      const token = localStorage.getItem("token");
+      return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+    },
+    logout: () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userEmail");
+      window.location.href = "index.html";
+    },
+  };
+
+  // Redirect to login page if not authenticated
   if (!Auth.checkAuth()) {
     return window.location.href = 'index.html';
   }
 
-  // Form elementleri
+  // Get DOM elements
   const createListForm  = document.getElementById('createListForm');
   const listName        = document.getElementById('listName');
   const listCategory    = document.getElementById('listCategory');
@@ -12,45 +37,56 @@ document.addEventListener('DOMContentLoaded', async () => {
   const listDescription = document.getElementById('listDescription');
   const logoutButton    = document.getElementById('logoutButton');
   const listsContainer  = document.getElementById('listsContainer');
+  const userEmailEl     = document.getElementById('userEmail');
 
-  // Kullanıcı e-postasını yaz
-  document.getElementById('userEmail').textContent = Auth.getUserEmail();
+  // Display user email in header
+  userEmailEl.textContent = Auth.getUserEmail();
 
-  // Liste çek ve göster
+  // Logout handler
+  if (logoutButton) {
+    logoutButton.addEventListener("click", () => {
+      console.log("Logout button clicked");
+      Auth.logout();
+    });
+  } else {
+    console.warn("logoutButton not found!");
+  }
+
+  // Fetch all lists belonging to the user
   try {
-  const res = await fetch(`${API_BASE}/lists`, {
-    headers: Auth.getHeaders()
-  });
+    const res = await fetch(`${API_BASE}/lists`, {
+      headers: Auth.getHeaders()
+    });
 
-  const text = await res.text(); // json yerine text al
-  console.log("Gelen ham yanıt:", text);
+    const text = await res.text(); // raw response text
+    console.log("Raw response:", text);
 
-  let data;
-  try {
-    data = JSON.parse(text);
+    let data;
+    try {
+      data = JSON.parse(text); // try to parse JSON
+    } catch (err) {
+      console.error("JSON parse error:", err);
+      return;
+    }
+
+    if (!Array.isArray(data)) {
+      console.error("Returned data is not an array:", data);
+      return;
+    }
+
+    renderLists(data);
   } catch (err) {
-    console.error("JSON parse hatası:", err);
-    return;
+    console.error("Fetch error:", err);
   }
 
-  if (!Array.isArray(data)) {
-    console.error("Dönen veri array değil:", data);
-    return;
-  }
-
-  renderLists(data);
-} catch (err) {
-  console.error("Fetch hatası:", err);
-}
-
-  // Liste oluştur
+  // Form submission to create a new list
   createListForm.addEventListener('submit', async e => {
     e.preventDefault();
 
     const payload = {
-      name:        listName.value.trim(),
-      category:    listCategory.value,
-      color:       listColor.value,
+      name: listName.value.trim(),
+      category: listCategory.value,
+      color: listColor.value,
       description: listDescription.value.trim()
     };
 
@@ -67,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).then(r => r.json());
 
         if (!Array.isArray(newLists)) {
-          console.error('Yeni çekilen veriler array değil:', newLists);
+          console.error('Newly fetched data is not an array:', newLists);
           return;
         }
 
@@ -75,30 +111,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         createListForm.reset();
       } else {
         const error = await res.json();
-        console.error('Liste oluşturulamadı:', error.message || res.status);
+        console.error('Failed to create list:', error.message || res.status);
       }
     } catch (err) {
-      console.error('Oluşturma sırasında hata:', err);
+      console.error('Error while creating list:', err);
     }
   });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const logoutButton = document.getElementById("logoutButton");
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", () => {
-      console.log("Çıkış butonuna tıklandı");
-      Auth.logout(); // localStorage temizle
-      window.location.href = "index.html"; // anasayfaya dön
-    });
-  } else {
-    console.warn("logoutButton bulunamadı!");
-  }
-});
-
-// Listeyi ekranda göster
-function renderLists(lists) {
-  listsContainer.innerHTML = '';
+  // Render list cards into the container
+  function renderLists(lists) {
+    listsContainer.innerHTML = '';
 
     lists.forEach(list => {
       const id = list._id || list.id;
